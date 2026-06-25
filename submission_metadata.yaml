@@ -1,0 +1,37 @@
+# Redrob Intelligent Candidate Discovery & Ranking Challenge
+# India Runs Data & AI Challenge — Submission Metadata
+
+team_name: ""
+team_members:
+  - name: ""
+    role: "Data Engineering & Feature Pipeline"
+  - name: ""
+    role: "Semantic Search & Retrieval"
+  - name: ""
+    role: "Ranking Engine & ML"
+  - name: ""
+    role: "Frontend, Evaluation, Documentation & Submission"
+
+challenge: "Intelligent Candidate Discovery & Ranking"
+submission_date: ""
+
+approach_summary: |
+  Hybrid CPU-only candidate ranking pipeline combining structured feature
+  extraction, sentence-transformer embeddings with FAISS semantic retrieval,
+  and a composite scoring function with honeypot detection.
+
+models_used:
+  - name: ""          # e.g. BAAI/bge-small-en-v1.5
+    purpose: "Candidate & JD embedding"
+  - name: ""          # e.g. LightGBM (optional reranker)
+    purpose: "Score calibration (optional)"
+
+compute_requirements:
+  ranking_wall_clock: "<=5 minutes"
+  ram: "<=16 GB"
+  hardware: "CPU-only"
+  network: "none"
+  hosted_llms: "none"
+
+output_format: "candidate_id,rank,score,reasoning"
+output_file: "submission.csv"

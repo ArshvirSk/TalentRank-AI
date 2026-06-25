@@ -1,0 +1,110 @@
+[
+  {
+    "candidate_id": "TEST_001",
+    "years_of_experience": 7.5,
+    "summary": "Senior ML engineer with 7 years building production NLP and recommendation systems.",
+    "location": "Bangalore, India",
+    "skills": [
+      {"name": "Python", "proficiency": "expert", "endorsements": 45, "duration_months": 84},
+      {"name": "PyTorch", "proficiency": "advanced", "endorsements": 20, "duration_months": 48},
+      {"name": "LangChain", "proficiency": "intermediate", "endorsements": 5, "duration_months": 12},
+      {"name": "Kubernetes", "proficiency": "intermediate", "endorsements": 10, "duration_months": 24}
+    ],
+    "career_history": [
+      {
+        "title": "Senior ML Engineer",
+        "company": "ProductCo AI",
+        "start_date": "2021-01-01",
+        "end_date": "present",
+        "duration_months": 42,
+        "description": "Led production deployment of NLP models serving 10M users. Built recommendation engine with PyTorch."
+      },
+      {
+        "title": "ML Engineer",
+        "company": "DataServices Inc",
+        "start_date": "2018-06-01",
+        "end_date": "2020-12-31",
+        "duration_months": 30,
+        "description": "Developed text classification pipelines for consulting clients using scikit-learn and spaCy."
+      }
+    ],
+    "education": [
+      {
+        "degree": "M.Tech",
+        "institution": "IIT Delhi",
+        "field_of_study": "Computer Science",
+        "start_year": 2016,
+        "end_year": 2018
+      }
+    ],
+    "redrob_signals": [
+      {"signal_name": "notice_period_days", "value": 30},
+      {"signal_name": "open_to_relocate", "value": true},
+      {"signal_name": "actively_looking", "value": true}
+    ]
+  },
+  {
+    "candidate_id": "TEST_002",
+    "years_of_experience": 2.0,
+    "summary": "Junior developer focusing on LangChain chatbot projects.",
+    "location": "Remote",
+    "skills": [
+      {"name": "Python", "proficiency": "intermediate", "endorsements": 3, "duration_months": 24},
+      {"name": "LangChain", "proficiency": "expert", "endorsements": 0, "duration_months": 6}
+    ],
+    "career_history": [
+      {
+        "title": "AI Developer",
+        "company": "Freelance",
+        "start_date": "2023-01-01",
+        "end_date": "present",
+        "duration_months": 18,
+        "description": "Built LangChain-based chatbots for small businesses."
+      }
+    ],
+    "education": [
+      {
+        "degree": "B.Tech",
+        "institution": "State University",
+        "field_of_study": "Information Technology",
+        "start_year": 2019,
+        "end_year": 2023
+      }
+    ],
+    "redrob_signals": [
+      {"signal_name": "notice_period_days", "value": 0},
+      {"signal_name": "actively_looking", "value": true}
+    ]
+  },
+  {
+    "candidate_id": "HONEYPOT_001",
+    "years_of_experience": 15.0,
+    "summary": "Expert in everything with 15 years of experience.",
+    "location": "Mumbai, India",
+    "skills": [
+      {"name": "Python", "proficiency": "expert", "endorsements": 99, "duration_months": 0},
+      {"name": "TensorFlow", "proficiency": "expert", "endorsements": 50, "duration_months": 1},
+      {"name": "Quantum Computing", "proficiency": "expert", "endorsements": 30, "duration_months": 0}
+    ],
+    "career_history": [
+      {
+        "title": "CTO",
+        "company": "Fake Corp",
+        "start_date": "2022-01-01",
+        "end_date": "present",
+        "duration_months": 24,
+        "description": "Led all AI initiatives across the company."
+      }
+    ],
+    "education": [
+      {
+        "degree": "PhD",
+        "institution": "Unknown University",
+        "field_of_study": "AI",
+        "start_year": 2020,
+        "end_year": 2021
+      }
+    ],
+    "redrob_signals": []
+  }
+]
