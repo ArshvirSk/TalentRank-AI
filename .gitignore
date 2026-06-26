@@ -2,7 +2,9 @@
 data/*
 !data/.gitkeep
 
-# Precomputed artifacts
+# Precomputed artifacts & logs
+artifacts/
+logs/
 *.npy
 *.faiss
 *.pkl

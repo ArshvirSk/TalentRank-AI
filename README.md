@@ -21,10 +21,14 @@ pip install -r requirements.txt
 #    data/candidates.jsonl   — 100k candidate records
 #    data/job_description.docx — the fixed JD
 
-# 3. Precompute embeddings (one-time, no time limit)
+# 3. Process the Data (Member A's Scope)
+# This will read the 100k JSONL records and compress them into highly optimized Parquet files
+python scripts/build_features.py
+
+# 4. Precompute embeddings (one-time, no time limit)
 python -m src.retrieval.embed --candidates ./data/candidates.jsonl --jd ./data/job_description.docx
 
-# 4. Produce the final submission CSV (must finish in <=5 min)
+# 5. Produce the final submission CSV (must finish in <=5 min)
 python -m src.ranking.rank --candidates ./data/candidates.jsonl --jd ./data/job_description.docx --out ./submission.csv
 ```
 
@@ -83,6 +87,20 @@ python -m src.ranking.rank --candidates ./data/candidates.jsonl --jd ./data/job_
 | 2      | Semantic Search & Retrieval            | `src/retrieval/`  | 1, 3, 4|
 | 3      | Ranking Engine & ML                    | `src/ranking/`    | 5, 7   |
 | 4      | Frontend, Eval, Docs & Submission      | `src/explain/`, `app/`, `eval/`, `docs/` | 8 |
+
+---
+
+## Git Workflow & Collaboration
+
+To prevent merge conflicts (especially on shared files like `config.py`) and ensure the pipeline stays unbroken, all team members should follow this workflow:
+
+1. **Branching:** Do not push directly to `main`. Create a feature branch for your scope:
+   ```bash
+   git checkout -b feature/member-b-retrieval
+   ```
+2. **Pull Requests (PRs):** When finished with a stage, push your branch and open a Pull Request against `main`. 
+3. **Review & Merge:** Have at least one other member review the PR (ensure no massive data files/Faiss indices were accidentally committed) before merging.
+4. **Syncing:** Pull `main` frequently. Whenever a PR is merged, run `python scripts/build_features.py` (or the respective downstream script) to regenerate the latest artifacts locally.
 
 ---
 
