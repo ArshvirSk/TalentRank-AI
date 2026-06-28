@@ -297,3 +297,11 @@ HONEYPOT_FLAG_THRESHOLD = 0.3              # honeypot_score above this → flagg
 # Profile completeness contradiction: high completeness but no verifications
 HONEYPOT_COMPLETENESS_THRESHOLD = 95
 
+# ---------------------------------------------------------------------------
+# Explanation generator — borderline rank threshold
+# ---------------------------------------------------------------------------
+# Candidates at rank >= BORDERLINE_RANK_THRESHOLD or with final_score below
+# BORDERLINE_SCORE_THRESHOLD receive an explicit gap-acknowledgment clause.
+# Values tuned against sample_candidates.json decile analysis.
+BORDERLINE_RANK_THRESHOLD: int = 80
+BORDERLINE_SCORE_THRESHOLD: float = 0.35
