@@ -7,17 +7,13 @@ Stages covered:
   1 — JD Understanding
   3 — Candidate Embedding Generation
   4 — FAISS Semantic Retrieval
+
+Note: Heavy imports (sentence_transformers, faiss) are lazy-loaded.
+      Only JDProfile is imported eagerly since it's a lightweight dataclass.
 """
 
-from src.retrieval.jd_parser import parse_job_description, JDProfile
-from src.retrieval.embed import embed_texts, precompute_all_embeddings
-from src.retrieval.faiss_index import build_faiss_index, query_faiss_index
+from src.retrieval.jd_parser import JDProfile
 
 __all__ = [
-    "parse_job_description",
     "JDProfile",
-    "embed_texts",
-    "precompute_all_embeddings",
-    "build_faiss_index",
-    "query_faiss_index",
 ]

@@ -6,14 +6,15 @@ Owner: Member 3
 Stages covered:
   5 — Hybrid Candidate Scoring
   7 — Final Ranking Engine (rank.py CLI)
+
+Note: rank.py is imported lazily to avoid circular/heavy imports at startup.
 """
 
-from src.ranking.fusion import compute_composite_score
+from src.ranking.fusion import compute_composite_score, ScoreBreakdown
 from src.ranking.behavioral import compute_availability_multiplier
-from src.ranking.rank import run_ranking_pipeline
 
 __all__ = [
     "compute_composite_score",
+    "ScoreBreakdown",
     "compute_availability_multiplier",
-    "run_ranking_pipeline",
 ]

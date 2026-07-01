@@ -25,7 +25,7 @@ CANDIDATE_FEATURES_PATH = PROCESSED_DIR / "candidate_features.parquet"
 CANDIDATE_SKILL_TRUST_PATH = PROCESSED_DIR / "candidate_skill_trust.parquet"
 
 CANDIDATE_EMBEDDINGS_PATH = ARTIFACTS_DIR / "candidate_embeddings.npy"
-JD_EMBEDDINGS_PATH = ARTIFACTS_DIR / "jd_embeddings.npy"
+JD_EMBEDDINGS_PATH = ARTIFACTS_DIR / "jd_query_vectors.npy"
 FAISS_INDEX_PATH = ARTIFACTS_DIR / "candidates.faiss"
 
 # ---------------------------------------------------------------------------
