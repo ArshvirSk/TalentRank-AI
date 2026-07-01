@@ -230,6 +230,3 @@ def compute_composite_score(
         base_score=base_score,
         final_score=final_score,
     )
-    raise NotImplementedError(
-        "compute_composite_score: scoring formula not yet implemented"
-    )
