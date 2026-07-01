@@ -9,6 +9,10 @@ logs/
 *.faiss
 *.pkl
 *.bin
+*.parquet
+personB/precomputed/
+personB/precomputed_sample/
+personB/*.parquet
 
 # Python
 __pycache__/
