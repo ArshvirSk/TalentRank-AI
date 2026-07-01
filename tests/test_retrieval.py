@@ -13,8 +13,6 @@ import numpy as np
 import pytest
 
 from src.retrieval.jd_parser import parse_job_description, JDProfile
-from src.retrieval.embed import embed_texts
-from src.retrieval.faiss_index import build_faiss_index, query_faiss_index
 
 
 # ---- JD Parser tests ----

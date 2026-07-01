@@ -30,6 +30,15 @@ python -m src.retrieval.embed --candidates ./data/candidates.jsonl --jd ./data/j
 
 # 5. Produce the final submission CSV (must finish in <=5 min)
 python -m src.ranking.rank --candidates ./data/candidates.jsonl --jd ./data/job_description.docx --out ./submission.csv
+
+# 6. Validate the Submission CSV
+python -m eval.validate_submission .\submission.csv
+
+# 7. Run Face Validity Spot Checks
+python -m eval.spot_check
+
+# 8. Launch Interactive Streamlit Dashboard
+streamlit run app/streamlit_app.py
 ```
 
 ---
@@ -128,11 +137,47 @@ candidate_id,rank,score,reasoning
 
 ---
 
+## Data Schema Validation
+
+The system strictly enforces data correctness using `src.features.schema.CandidateRecord`. This frozen dataclass acts as the single source of truth for candidate structures. 
+**Crucial Requirement**: Always use the `parse_candidate()` factory function to instantiate a `CandidateRecord` from raw JSON/dictionary data to prevent `TypeError` from missing or unexpected fields.
+
+---
+
+## Evaluation Scripts
+
+We provide a robust evaluation harness in the `eval/` directory:
+
+1. **`validate_submission.py`**
+   - Validates that the generated `submission.csv` strictly matches the hackathon constraints (100 rows, specific columns, sequential ranks, valid scores).
+   - Usage: `python -m eval.validate_submission .\submission.csv`
+
+2. **`spot_check.py`**
+   - Performs manual face-validity spot checks by sampling candidates across all 10 score deciles and printing formatted profile cards.
+   - Runs 5 automated checks including Disqualifier Push-Down, Reasoning Diversity, and Sentinel Signal handling.
+   - Usage: `python -m eval.spot_check`
+
+---
+
 ## Running Tests
+
+We use `pytest` for all unit and integration tests. Ensure you run this from the project root.
 
 ```bash
 pytest tests/ -v
 ```
+*(The `pytest.ini` automatically configures `pythonpath = .` to resolve all absolute imports from `src/`.)*
+
+---
+
+## Streamlit Application
+
+You can visualize the ranked candidates, their score breakdowns, and reasoning using our interactive web dashboard.
+
+```bash
+streamlit run app/streamlit_app.py
+```
+This application runs locally and allows you to dynamically explore the `submission.csv` output.
 
 ---
 

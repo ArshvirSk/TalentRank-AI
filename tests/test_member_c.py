@@ -13,7 +13,7 @@ import csv
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from src.features.schema import CandidateRecord
+from src.features.schema import CandidateRecord, parse_candidate
 from src.features.career_signals import CareerSignals
 from src.ranking.behavioral import (
     compute_availability_multiplier,
@@ -37,7 +37,7 @@ from src.ranking.rank import write_submission_csv
 @pytest.fixture
 def candidate_perfect() -> CandidateRecord:
     """Candidate with all perfect signals."""
-    return CandidateRecord(
+    return parse_candidate(dict(
         candidate_id="CAND_0000001",
         profile={
             "anonymized_name": "Alice Perfect",
@@ -114,14 +114,14 @@ def candidate_perfect() -> CandidateRecord:
             "verified_email": True,
             "verified_phone": True,
             "linkedin_connected": True,
-        },
-    )
+        }
+    ))
 
 
 @pytest.fixture
 def candidate_poor() -> CandidateRecord:
     """Candidate with all poor signals."""
-    return CandidateRecord(
+    return parse_candidate(dict(
         candidate_id="CAND_0000002",
         profile={
             "anonymized_name": "Bob Poor",
@@ -174,21 +174,18 @@ def candidate_poor() -> CandidateRecord:
             "verified_email": False,
             "verified_phone": False,
             "linkedin_connected": False,
-        },
-    )
+        }
+    ))
 
 
 @pytest.fixture
 def career_signals_perfect() -> CareerSignals:
     """Perfect career signals."""
     return CareerSignals(
-        years_of_experience=10.0,
-        avg_tenure_months=48.0,
-        title_progression_score=0.9,
+        total_career_months=120,
+        production_evidence_score=0.9,
         title_chaser_score=0.1,
-        industry_consistency_score=0.95,
-        company_quality_score=0.9,
-        stability_score=0.95,
+        consulting_only_flag=False,
         seniority_score=0.95,
     )
 
@@ -197,13 +194,10 @@ def career_signals_perfect() -> CareerSignals:
 def career_signals_poor() -> CareerSignals:
     """Poor career signals."""
     return CareerSignals(
-        years_of_experience=0.5,
-        avg_tenure_months=6.0,
-        title_progression_score=0.2,
+        total_career_months=6,
+        production_evidence_score=0.2,
         title_chaser_score=0.8,
-        industry_consistency_score=0.3,
-        company_quality_score=0.2,
-        stability_score=0.2,
+        consulting_only_flag=True,
         seniority_score=0.1,
     )
 
@@ -263,13 +257,9 @@ class TestAvailabilityMultiplier:
     
     def test_notice_period_impact(self):
         """Test that short notice period increases multiplier."""
-        candidate_short_notice = CandidateRecord(
-            candidate_id="CAND_SHORT",
-            profile={},
-            career_history=[],
-            education=[],
-            skills=[],
-            redrob_signals={
+        candidate_short_notice = parse_candidate({
+            "candidate_id": "CAND_SHORT",
+            "redrob_signals": {
                 "notice_period_days": 0,
                 "open_to_work_flag": True,
                 "willing_to_relocate": False,
@@ -291,15 +281,11 @@ class TestAvailabilityMultiplier:
                 "avg_response_time_hours": 24,
                 "skill_assessment_scores": {},
             },
-        )
+        })
         
-        candidate_long_notice = CandidateRecord(
-            candidate_id="CAND_LONG",
-            profile={},
-            career_history=[],
-            education=[],
-            skills=[],
-            redrob_signals={
+        candidate_long_notice = parse_candidate({
+            "candidate_id": "CAND_LONG",
+            "redrob_signals": {
                 "notice_period_days": 120,  # Different notice period
                 "open_to_work_flag": True,
                 "willing_to_relocate": False,
@@ -321,7 +307,7 @@ class TestAvailabilityMultiplier:
                 "avg_response_time_hours": 24,
                 "skill_assessment_scores": {},
             },
-        )
+        })
         
         mult_short = compute_availability_multiplier(candidate_short_notice)
         mult_long = compute_availability_multiplier(candidate_long_notice)
@@ -355,13 +341,9 @@ class TestBehavioralScore:
     
     def test_recency_impact(self):
         """Test that recent activity increases behavioral score."""
-        candidate_active = CandidateRecord(
-            candidate_id="CAND_ACTIVE",
-            profile={},
-            career_history=[],
-            education=[],
-            skills=[],
-            redrob_signals={
+        candidate_active = parse_candidate({
+            "candidate_id": "CAND_ACTIVE",
+            "redrob_signals": {
                 "profile_completeness_score": 50,
                 "last_active_date": datetime.now().isoformat(),  # Very recent
                 "interview_completion_rate": 0.8,
@@ -371,15 +353,11 @@ class TestBehavioralScore:
                 "search_appearance_30d": 10,
                 "recruiter_response_rate": 0.7,
             },
-        )
+        })
         
-        candidate_stale = CandidateRecord(
-            candidate_id="CAND_STALE",
-            profile={},
-            career_history=[],
-            education=[],
-            skills=[],
-            redrob_signals={
+        candidate_stale = parse_candidate({
+            "candidate_id": "CAND_STALE",
+            "redrob_signals": {
                 "profile_completeness_score": 50,
                 "last_active_date": (datetime.now() - timedelta(days=200)).isoformat(),  # Very stale
                 "interview_completion_rate": 0.8,
@@ -389,7 +367,7 @@ class TestBehavioralScore:
                 "search_appearance_30d": 10,
                 "recruiter_response_rate": 0.7,
             },
-        )
+        })
         
         score_active = compute_behavioral_score(candidate_active)
         score_stale = compute_behavioral_score(candidate_stale)
@@ -605,14 +583,12 @@ class TestIntegration:
     def test_two_candidates_ranking(self, candidate_perfect, candidate_poor):
         """Test that perfect candidate scores higher than poor candidate."""
         career_perfect = CareerSignals(
-            years_of_experience=10.0, avg_tenure_months=48.0, title_progression_score=0.9,
-            title_chaser_score=0.1, industry_consistency_score=0.95, company_quality_score=0.9,
-            stability_score=0.95, seniority_score=0.95,
+            total_career_months=120, seniority_score=0.95, production_evidence_score=0.9,
+            title_chaser_score=0.1, consulting_only_flag=False,
         )
         career_poor = CareerSignals(
-            years_of_experience=0.5, avg_tenure_months=6.0, title_progression_score=0.2,
-            title_chaser_score=0.8, industry_consistency_score=0.3, company_quality_score=0.2,
-            stability_score=0.2, seniority_score=0.1,
+            total_career_months=6, seniority_score=0.1, production_evidence_score=0.2,
+            title_chaser_score=0.8, consulting_only_flag=True,
         )
         
         mult_perfect = compute_availability_multiplier(candidate_perfect)

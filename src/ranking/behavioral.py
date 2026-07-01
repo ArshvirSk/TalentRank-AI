@@ -89,7 +89,10 @@ def _flatten_redrob_signals(candidate: CandidateRecord) -> Dict[str, Any]:
     dict
         Flat mapping of signal names to values.
     """
-    # If it's a dataclass, convert to dict
+    if hasattr(candidate.redrob_signals, 'raw_signals'):
+        return getattr(candidate.redrob_signals, 'raw_signals')
+    
+    # Fallback to __dict__ if it's a non-slotted dataclass (for tests)
     if hasattr(candidate.redrob_signals, '__dict__'):
         return candidate.redrob_signals.__dict__
     

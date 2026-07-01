@@ -70,6 +70,7 @@ class RedrobSignals:
     linkedin_connected: bool = False
     signup_date: str = ""
     last_active_date: str = ""
+    raw_signals: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -168,6 +169,7 @@ def _parse_redrob_signals(raw: Any) -> RedrobSignals:
             linkedin_connected=bool(raw.get("linkedin_connected", False)),
             signup_date=str(raw.get("signup_date", "")).strip(),
             last_active_date=str(raw.get("last_active_date", "")).strip(),
+            raw_signals=raw,
         )
 
     # If it's a list of {signal_name, value} pairs, flatten

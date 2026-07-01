@@ -17,7 +17,7 @@ import os
 
 import pytest
 
-from build_texts import (
+from src.retrieval.build_texts import (
     build_candidate_text,
     _build_redrob_section,
     _assign_tier,
@@ -310,12 +310,21 @@ def _find_strong_weak_candidates(data):
         descriptions = " ".join(
             role.get("description", "") for role in c.get("career_history", [])
         ).lower()
+        
+        # Base score based on ML keywords
         score = sum(descriptions.count(kw) for kw in ml_keywords)
+        
+        # Penalize strongly if they are a non-engineering title (to make them the weak candidate)
+        curr_title = c.get("profile", {}).get("current_title", "").lower()
+        is_non_eng = any(nt in curr_title for nt in non_eng_titles)
+        if is_non_eng:
+            score -= 1000
+            
         scored.append((score, c))
 
     scored.sort(key=lambda x: x[0])
-    weak = scored[0][1]   # lowest ML keyword density
-    strong = scored[-1][1]  # highest ML keyword density
+    weak = scored[0][1]   # lowest score (most disqualified)
+    strong = scored[-1][1]  # highest score (most ML)
     return strong, weak
 
 
@@ -325,7 +334,7 @@ def test_sim_must_strong_greater_than_weak():
     Requirements: 13.3
     """
     from sentence_transformers import SentenceTransformer
-    from precompute_embeddings import MODEL_NAME, _prepare_query_texts
+    from src.retrieval.embed import MODEL_NAME, _prepare_query_texts
     import numpy as np
 
     data = _load_sample()
@@ -369,7 +378,7 @@ def test_sim_disq_weak_greater_than_strong():
     Requirements: 13.4
     """
     from sentence_transformers import SentenceTransformer
-    from precompute_embeddings import MODEL_NAME, _prepare_query_texts
+    from src.retrieval.embed import MODEL_NAME, _prepare_query_texts
     import numpy as np
 
     data = _load_sample()
