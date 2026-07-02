@@ -88,14 +88,16 @@ streamlit run app/streamlit_app.py
 
 ---
 
-## Team Ownership Map
+## Team — ASK
 
-| Member | Responsibility                         | Directory        | Stages |
-|--------|----------------------------------------|------------------|--------|
-| 1      | Data Engineering & Feature Pipeline    | `src/features/`  | 2, 6   |
-| 2      | Semantic Search & Retrieval            | `src/retrieval/`  | 1, 3, 4|
-| 3      | Ranking Engine & ML                    | `src/ranking/`    | 5, 7   |
-| 4      | Frontend, Eval, Docs & Submission      | `src/explain/`, `app/`, `eval/`, `docs/` | 8 |
+| Member | Name                    | Responsibility                         | Directory        | Stages |
+|--------|-------------------------|----------------------------------------|------------------|--------|
+| A      | **Arshvir Singh Kalsi** | Data Engineering & Feature Pipeline    | `src/features/`  | 2, 6   |
+| B      | **Siddhant Sawant**     | Semantic Search & Retrieval            | `src/retrieval/`  | 1, 3, 4|
+| C      | **Viraj Prabhu**        | Ranking Engine & ML Scoring            | `src/ranking/`    | 5, 7   |
+| D      | **Ghrani Ganesh Poojari** | Frontend, Eval, Docs & Submission    | `app/`, `eval/`   | 8      |
+
+> See [CONTRIBUTORS.md](CONTRIBUTORS.md) for detailed per-member contribution breakdown.
 
 ---
 
