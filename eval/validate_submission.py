@@ -73,16 +73,27 @@ def validate_submission(
     submission_path = Path(submission_path)
 
     try:
-        with open(submission_path, newline="", encoding="utf-8") as f:
-            reader = csv.reader(f)
-            try:
-                header = next(reader)
-            except StopIteration:
-                errors.append("CSV file is empty")
+        if str(submission_path).lower().endswith('.xlsx'):
+            import pandas as pd
+            df = pd.read_excel(submission_path, dtype=str, keep_default_na=False)
+            if df.empty and df.columns.empty:
+                errors.append("File is empty")
                 rows_raw: list[list[str]] = []
                 header = None
             else:
-                rows_raw = list(reader)
+                header = df.columns.tolist()
+                rows_raw = df.values.tolist()
+        else:
+            with open(submission_path, newline="", encoding="utf-8") as f:
+                reader = csv.reader(f)
+                try:
+                    header = next(reader)
+                except StopIteration:
+                    errors.append("CSV file is empty")
+                    rows_raw: list[list[str]] = []
+                    header = None
+                else:
+                    rows_raw = list(reader)
     except FileNotFoundError:
         print(f"X File not found: {submission_path}")
         return False

@@ -276,9 +276,9 @@ def run_ranking_pipeline(
 
         rows.append((breakdown.candidate_id, rank, round(breakdown.final_score, 6), reasoning))
 
-    # ===== Step 7: Write CSV =====
+    # ===== Step 7: Write output =====
     log.info(f"Writing submission to {output_path}...")
-    write_submission_csv(output_path, rows)
+    write_submission(output_path, rows)
 
     # ===== Timing validation =====
     elapsed = time.monotonic() - start_time
@@ -291,19 +291,20 @@ def run_ranking_pipeline(
         )
 
 
-def write_submission_csv(
+def write_submission(
     output_path: str | Path,
     rows: list[tuple[str, int, float, str]],
 ) -> None:
-    """Write the final submission CSV."""
+    """Write the final submission file (CSV or XLSX)."""
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["candidate_id", "rank", "score", "reasoning"])
-        for row in rows:
-            writer.writerow(row)
+    df = pd.DataFrame(rows, columns=["candidate_id", "rank", "score", "reasoning"])
+    
+    if output_path.suffix.lower() == '.xlsx':
+        df.to_excel(output_path, index=False)
+    else:
+        df.to_csv(output_path, index=False)
 
     log.info(f"Submission written to {output_path} ({len(rows)} rows)")
 
@@ -330,7 +331,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--out", type=str, default=str(config.SUBMISSION_PATH),
-        help="Output CSV path (default: submission.csv)",
+        help="Output file path (default: submission.xlsx)",
     )
     args = parser.parse_args()
 

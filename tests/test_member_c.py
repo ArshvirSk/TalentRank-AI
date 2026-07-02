@@ -27,7 +27,7 @@ from src.ranking.fusion import (
     _extract_availability_stability,
     _extract_seniority_and_shipping,
 )
-from src.ranking.rank import write_submission_csv
+from src.ranking.rank import write_submission
 
 
 # ============================================================================
@@ -497,7 +497,7 @@ class TestWriteSubmissionCSV:
         
         with tempfile.TemporaryDirectory() as tmpdir:
             csv_path = Path(tmpdir) / "test_submission.csv"
-            write_submission_csv(csv_path, rows)
+            write_submission(csv_path, rows)
             
             # Read back and verify
             assert csv_path.exists()
@@ -521,7 +521,7 @@ class TestWriteSubmissionCSV:
         
         with tempfile.TemporaryDirectory() as tmpdir:
             csv_path = Path(tmpdir) / "test_empty.csv"
-            write_submission_csv(csv_path, rows)
+            write_submission(csv_path, rows)
             
             with open(csv_path, 'r', newline='') as f:
                 reader = csv.reader(f)
@@ -539,7 +539,7 @@ class TestWriteSubmissionCSV:
         
         with tempfile.TemporaryDirectory() as tmpdir:
             csv_path = Path(tmpdir) / "test_special.csv"
-            write_submission_csv(csv_path, rows)
+            write_submission(csv_path, rows)
             
             with open(csv_path, 'r', newline='') as f:
                 reader = csv.reader(f)

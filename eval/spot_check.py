@@ -194,20 +194,34 @@ def run_spot_check(
 
     rows: list[dict] = []
     try:
-        with open(submission_path, newline="", encoding="utf-8") as fh:
-            reader = csv.DictReader(fh)
-            for row in reader:
+        if str(submission_path).lower().endswith('.xlsx'):
+            import pandas as pd
+            df = pd.read_excel(submission_path, dtype=str, keep_default_na=False)
+            for _, row in df.iterrows():
                 try:
                     rows.append({
-                        "candidate_id": row["candidate_id"].strip(),
-                        "rank": int(float(row["rank"])),
-                        "score": float(row["score"]),
-                        "reasoning": row["reasoning"].strip(),
+                        "candidate_id": row.get("candidate_id", "").strip(),
+                        "rank": int(float(row.get("rank", 0))),
+                        "score": float(row.get("score", 0.0)),
+                        "reasoning": row.get("reasoning", "").strip(),
                     })
-                except (KeyError, ValueError) as exc:
-                    print(f"  [WARNING] Skipping malformed CSV row: {exc}")
+                except (KeyError, ValueError, TypeError) as exc:
+                    print(f"  [WARNING] Skipping malformed XLSX row: {exc}")
+        else:
+            with open(submission_path, newline="", encoding="utf-8") as fh:
+                reader = csv.DictReader(fh)
+                for row in reader:
+                    try:
+                        rows.append({
+                            "candidate_id": row["candidate_id"].strip(),
+                            "rank": int(float(row["rank"])),
+                            "score": float(row["score"]),
+                            "reasoning": row["reasoning"].strip(),
+                        })
+                    except (KeyError, ValueError) as exc:
+                        print(f"  [WARNING] Skipping malformed CSV row: {exc}")
     except OSError as exc:
-        print(f"X Failed to read submission CSV: {exc}")
+        print(f"X Failed to read submission file: {exc}")
         return
 
     if not rows:

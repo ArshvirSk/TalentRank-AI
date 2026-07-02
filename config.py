@@ -17,7 +17,7 @@ ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"
 
 CANDIDATES_PATH = DATA_DIR / "candidates.jsonl"
 JD_PATH = DATA_DIR / "job_description.docx"
-SUBMISSION_PATH = PROJECT_ROOT / "submission.csv"
+SUBMISSION_PATH = PROJECT_ROOT / "submission.xlsx"
 
 # Precomputed artifact paths
 PROCESSED_DIR = DATA_DIR / "processed"

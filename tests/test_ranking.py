@@ -14,7 +14,7 @@ import pytest
 
 from src.ranking.fusion import compute_composite_score, ScoreBreakdown
 from src.ranking.behavioral import compute_availability_multiplier
-from src.ranking.rank import write_submission_csv
+from src.ranking.rank import write_submission
 from src.features.career_signals import CareerSignals
 
 import config
@@ -97,7 +97,7 @@ class TestCSVOutput:
             ("CAND_001", 1, 0.95, "Strong match on all dimensions."),
             ("CAND_002", 2, 0.90, "Good technical fit."),
         ]
-        write_submission_csv(out_path, rows)
+        write_submission(out_path, rows)
 
         with open(out_path, "r", encoding="utf-8") as f:
             reader = csv.reader(f)
