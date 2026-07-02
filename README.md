@@ -1,7 +1,7 @@
 # TalentRank AI
 
 > Submission for the **India Runs Data & AI Challenge: Intelligent Candidate Discovery & Ranking**
-> By **Team ASK**
+> By **Team Coder's Block**
 
 This repository contains an intelligent ranking engine capable of evaluating 100,000 candidate profiles against a Job Description (JD) for an ML Engineer role, adhering to strict offline, CPU-only, and 5-minute execution constraints.
 
@@ -118,7 +118,7 @@ streamlit run app/streamlit_app.py
 
 ---
 
-## 👥 Team — ASK
+## 👥 Team — Coder's Block
 
 | Member | Name                    | Responsibility                         | Directory        | Stages |
 |--------|-------------------------|----------------------------------------|------------------|--------|

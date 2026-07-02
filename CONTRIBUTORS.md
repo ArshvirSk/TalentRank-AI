@@ -1,6 +1,6 @@
 # Contributors
 
-## Team: ASK
+## Team: Coder's Block
 
 This project was built collaboratively by a 4-member team for the
 **India Runs Data & AI Challenge — Intelligent Candidate Discovery & Ranking**.
