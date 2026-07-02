@@ -181,9 +181,9 @@ def compute_composite_score(
     # ===== Compute base score =====
     # Weights must sum to 1.0
     weights = {
-        'skill_match': 0.35,
-        'career_match': 0.25,
-        'behavioral_score': 0.20,
+        'skill_match': 0.45,
+        'career_match': 0.20,
+        'behavioral_score': 0.15,
         'availability_stability': 0.10,
         'seniority_and_shipping': 0.10,
     }
@@ -202,8 +202,8 @@ def compute_composite_score(
     base_score = max(0.0, min(1.0, base_score))
     
     # ===== Apply disqualifier penalty =====
-    # If disqualifier_sim > 0.6, apply heavy penalty to near-zero
-    DISQUALIFIER_THRESHOLD = 0.6
+    # If disqualifier_sim > 0.75, apply heavy penalty to near-zero
+    DISQUALIFIER_THRESHOLD = 0.75
     DISQUALIFIER_PENALTY_SCALE = 0.85
     
     disqualifier_penalty = 0.0

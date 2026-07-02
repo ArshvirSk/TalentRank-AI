@@ -404,6 +404,13 @@ def compute_behavioral_score(candidate: CandidateRecord) -> float:
         weights['consistency'] * consistency_score
     )
     
-    behavioral_score = max(0.0, min(1.0, behavioral_score))
+    # Normalize the score based on empirically observed population bounds
+    # Min observed: 0.3153, Max observed: 0.8532
+    raw_min = 0.315
+    raw_max = 0.855
+    scaled_score = (behavioral_score - raw_min) / (raw_max - raw_min)
     
-    return float(behavioral_score)
+    # Clamp to strictly [0.0, 1.0]
+    final_behavioral_score = max(0.0, min(1.0, scaled_score))
+    
+    return float(final_behavioral_score)
