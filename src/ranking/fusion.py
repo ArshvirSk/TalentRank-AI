@@ -15,7 +15,8 @@ Computes the composite score for each candidate:
 
     final = base * availability_multiplier   # ~0.6–1.15 from redrob_signals
 
-skill_match and career_match are derived from Stage 4 (FAISS similarity).
+skill_match and career_match are derived from Stage 4 (semantic similarity
+via the retrieval backend — numpy matmul or FAISS, results identical).
 behavioral_score and availability_multiplier are derived from Stage 2
 (career signals and redrob_signals).
 """
@@ -156,11 +157,11 @@ def compute_composite_score(
 
     Notes
     -----
-    Composite formula:
-        base = 0.35*skill + 0.25*career + 0.20*behavioral + 
-               0.10*stability + 0.10*seniority
+    Composite formula (weights live in config.py):
+        base = W_SKILL*skill + W_CAREER*career + W_BEHAVIORAL*behavioral +
+               W_STABILITY*stability + W_SENIORITY*seniority
         
-        if disqualifier_sim > 0.6:
+        if disqualifier_sim > 0.75:
             base -= 0.85 * disqualifier_sim  (near-zeroing penalty)
         
         final = base * availability_multiplier
@@ -179,13 +180,15 @@ def compute_composite_score(
     seniority_and_shipping = _extract_seniority_and_shipping(career_signals)
     
     # ===== Compute base score =====
-    # Weights must sum to 1.0
+    # Weights come from config.py (Stage 5 composite); they must sum to 1.0.
+    # Tuned via eval/weight_sensitivity.py — see docs/FUSION.md for the
+    # rationale and the measured ranking stability under perturbation.
     weights = {
-        'skill_match': 0.45,
-        'career_match': 0.20,
-        'behavioral_score': 0.15,
-        'availability_stability': 0.10,
-        'seniority_and_shipping': 0.10,
+        'skill_match': config.WEIGHT_SKILL_MATCH,
+        'career_match': config.WEIGHT_CAREER_MATCH,
+        'behavioral_score': config.WEIGHT_BEHAVIORAL,
+        'availability_stability': config.WEIGHT_AVAILABILITY_STABILITY,
+        'seniority_and_shipping': config.WEIGHT_SENIORITY_SHIPPING,
     }
     
     total_weight = sum(weights.values())

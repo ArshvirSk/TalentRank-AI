@@ -31,9 +31,7 @@ We successfully built a robust, production-ready system that perfectly adhered t
 
 ## 🛠️ The Architecture & Pipeline (How We Did It)
 
-To meet the strict CPU and time constraints, we designed a pipeline heavily reliant on **precomputation and vector similarity**.
-
-```text
+To meet the strict CPU and time constraints, we designed a pipeline heavily reliant on **precomputation and vector similarity**.```text
 ┌─────────────────────────────────────────────────────────────────┐
 │  Stage 1: JD Understanding                                      │
 │  Parse JD → must-have / nice-to-have / disqualifier vectors     │
@@ -44,14 +42,15 @@ To meet the strict CPU and time constraints, we designed a pipeline heavily reli
 │  Stage 3: Candidate Embedding Generation                        │
 │  CPU-friendly sentence-transformers (offline precompute)        │
 ├─────────────────────────────────────────────────────────────────┤
-│  Stage 4: FAISS Semantic Retrieval                              │
+│  Stage 4: Exact Semantic Retrieval                              │
 │  Three-vector query (must-have, nice-to-have, disqualifier)     │
+│  Backend: numpy matmul (default) or FAISS IndexFlatIP           │
 ├─────────────────────────────────────────────────────────────────┤
 │  Stage 5: Hybrid Candidate Scoring                              │
 │  Composite = weighted features + similarity − penalties         │
 ├─────────────────────────────────────────────────────────────────┤
 │  Stage 6: Honeypot Detection Layer                              │
-│  Rule-based consistency checks → hard exclusion gate             │
+│  Rule-based consistency checks → hard exclusion gate            │
 ├─────────────────────────────────────────────────────────────────┤
 │  Stage 7: Final Ranking Engine (rank.py CLI)                    │
 │  Loads precomputed artifacts, applies 5+6, writes top-100 CSV   │
@@ -61,23 +60,39 @@ To meet the strict CPU and time constraints, we designed a pipeline heavily reli
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+### Retrieval backend: measured, not assumed
+
+Stage 4 supports two **exact** backends (identical top-k):
+
+| Backend | 100k × 384, 3 queries, top-500 | Notes |
+|---|---|---|
+| `numpy` matmul (default) | **0.022 s** | zero extra deps |
+| FAISS `IndexFlatIP` | 0.070 s | the right choice at 10M+ rows / mmap |
+
+At this corpus size a single vectorized matmul beats index build+query on
+speed *and* loses nothing in exactness — so numpy is the default and FAISS
+is one config flip away (`config.RETRIEVAL_BACKEND`). Reproduce with
+`python -m eval.retrieval_benchmark`.
+
 ### 1. Data Engineering & Precomputation
 Instead of running heavy NLP models on 100,000 candidates at runtime, we pre-processed the data.
 * **Embeddings:** We used `SentenceTransformers` to generate 384-dimensional vector embeddings for candidate skills, job titles, and the JD components. These were saved as `.npy` arrays.
 * **Feature Extraction:** We parsed the unstructured candidate JSONs to extract numerical features (months of experience per skill, notice period length, response rate) and saved them as highly optimized `.parquet` files.
 
 ### 2. Fast Retrieval (The Funnel)
-* We implemented **FAISS (Facebook AI Similarity Search)** to quickly compute cosine similarities between the precomputed JD vectors and the candidate vectors.
-* Instead of scoring all 100,000 candidates thoroughly, we used FAISS to instantly shortlist the top 500 candidates based on their "must-have" skill alignment.
+* We compute **exact cosine similarities between the precomputed JD vectors and all candidate vectors** with a single vectorized matmul (numpy backend) — a FAISS `IndexFlatIP` backend with identical results is also implemented (`src/retrieval/faiss_index.py`) and selectable via config.
+* Instead of scoring all 100,000 candidates thoroughly, the must-have similarity shortlists the top 500 candidates for deep scoring.
 
 ### 3. Multi-Factor Ranking Engine
-The shortlisted candidates were passed through a complex scoring engine that evaluated them across five normalized dimensions:
-* **Skill Score (Weight: 45%):** Similarity to the JD's technical requirements.
-* **Career Score (Weight: 20%):** Alignment of their job title and total years of experience.
-* **Behavioral Score (Weight: 15%):** A min-max normalized score capturing their responsiveness, notice period, and "open to work" status.
+The shortlisted candidates were passed through a composite scoring engine that evaluated them across five normalized dimensions (weights in `config.py`, full formula + rationale in [docs/FUSION.md](docs/FUSION.md)):
+* **Skill Score (Weight: 35%):** Similarity to the JD's must-have requirements.
+* **Career Score (Weight: 25%):** Alignment of their job title and total years of experience.
+* **Behavioral Score (Weight: 20%):** A min-max normalized score capturing their responsiveness, notice period, and "open to work" status.
 * **Stability (Weight: 10%):** Evaluated their job tenure to ensure they aren't chronic job-hoppers.
 * **Seniority (Weight: 10%):** Rewarded candidates closer to the sweet spot of 4-6 years of experience.
-* **Disqualifiers:** We applied severe penalties to candidates missing critical requirements or possessing red flags (e.g., consulting-only profiles).
+* **Disqualifiers:** A near-zeroing penalty (0.85 × sim above a 0.75 threshold) for red-flag profiles (e.g., consulting-only careers), plus a platform-trust availability multiplier (0.6–1.15).
+
+**Weight sensitivity (measured):** with no relevance labels, the weights are informed priors — so we stress-tested them. `python -m eval.weight_sensitivity` perturbs every weight ±50% and re-ranks 30k candidates: top-100 **membership** retains 70–96% overlap (≥88% for the low-weight components), while intra-set ordering is most sensitive to the skill/career weights. Full table in [docs/FUSION.md](docs/FUSION.md).
 
 ### 4. Fraud Detection
 We built a `honeypot.py` module to dynamically filter out fake, sentinel, or corrupted profiles from the dataset before final ranking.
@@ -140,7 +155,7 @@ The system strictly enforces data correctness using `src.features.schema.Candida
 
 ## 🧪 Evaluation & Testing
 
-We provide a robust evaluation harness in the `eval/` directory and use `pytest` for all unit testing.
+We provide a robust evaluation harness in the `eval/` directory and use `pytest` for all unit testing (59 tests passing).
 
 ```bash
 # Run unit tests
@@ -151,7 +166,18 @@ python -m eval.validate_submission .\submission.csv
 
 # Perform manual face-validity spot checks
 python -m eval.spot_check
+
+# Weight-sensitivity analysis (ranking stability under ±50% weight swings)
+python -m eval.weight_sensitivity
+
+# numpy-vs-FAISS retrieval benchmark
+python -m eval.retrieval_benchmark
 ```
+
+## 📚 Deep-Dive Docs
+
+- [docs/FUSION.md](docs/FUSION.md) — the exact Stage-5 formula, where every component comes from, and the measured weight-sensitivity evidence.
+- [docs/OWNERSHIP.md](docs/OWNERSHIP.md) — file-level authorship map for the team (who wrote what).
 
 ---
 

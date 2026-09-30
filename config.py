@@ -65,9 +65,14 @@ EMBEDDING_MODEL_NAME = "BAAI/bge-small-en-v1.5"
 EMBEDDING_DIMENSION = 384  # bge-small-en-v1.5 output dimension
 
 # ---------------------------------------------------------------------------
-# FAISS retrieval
+# Retrieval backend
 # ---------------------------------------------------------------------------
-FAISS_NPROBE = 16          # Number of Voronoi cells to probe at query time
+# "numpy": exact vectorized matmul over all N rows (default — fastest AND
+#   exact at 100k x 384; measured in eval/retrieval_benchmark.py).
+# "faiss": IndexFlatIP via src/retrieval/faiss_index.py (identical results;
+#   the better choice beyond RAM scale or at 10M+ vectors; needs faiss-cpu).
+RETRIEVAL_BACKEND = "numpy"
+
 FAISS_TOP_K_RETRIEVAL = 500  # Retrieve this many before re-scoring
 
 # ---------------------------------------------------------------------------

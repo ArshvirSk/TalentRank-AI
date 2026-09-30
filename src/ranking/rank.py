@@ -36,12 +36,14 @@ import numpy as np
 import pandas as pd
 
 import config
+from src.retrieval import jd_parser as jd_parser_module
 from src.features.schema import CandidateRecord, parse_candidate
 from src.features.career_signals import extract_career_signals
 from src.features.honeypot import compute_honeypot_score
 from src.ranking.behavioral import compute_availability_multiplier, compute_behavioral_score
 from src.ranking.fusion import compute_composite_score, ScoreBreakdown
-from src.retrieval.jd_parser import JDProfile
+from src.retrieval.jd_parser import JDProfile, load_default_jd_profile
+from src.retrieval import faiss_index as retrieval
 
 logging.basicConfig(
     level=logging.INFO,
@@ -104,10 +106,42 @@ def _compute_all_similarities(
     Compute cosine similarities between all candidate embeddings and the
     3 JD query vectors (must-have, nice-to-have, disqualifier).
 
-    Both inputs are already L2-normalized, so dot product = cosine sim.
+    Backend selected by config.RETRIEVAL_BACKEND:
+      - "numpy": single vectorized matmul over all N rows — exact and, at
+        100k x 384 (~150 MB), faster than index build+query. Default.
+      - "faiss": exact IndexFlatIP via src/retrieval/faiss_index.py —
+        identical results; the right choice at 10M+ rows or when the
+        matrix is memory-mapped. Requires faiss-cpu.
 
     Returns (sim_must, sim_nice, sim_disq) each of shape (N,).
     """
+    if config.RETRIEVAL_BACKEND == "faiss":
+        from src.retrieval.faiss_index import build_faiss_index, query_faiss_index
+
+        # FAISS handles the retrieval funnel (must-have top-k shortlist).
+        # nice/disqualifier similarities are then computed EXACTLY for the
+        # shortlisted rows only — fetching them from a top-k query would
+        # silently return 0.0 for candidates outside a query's top-k and
+        # lose disqualifier penalties. 500 rows x 384 dims is microseconds.
+        index_path = build_faiss_index(embeddings=embeddings)
+        k_must = min(config.FAISS_TOP_K_RETRIEVAL, embeddings.shape[0])
+        d_must, i_must = query_faiss_index(
+            jd_vectors[0:1], top_k=k_must, index_path=index_path
+        )
+
+        n = embeddings.shape[0]
+        sim_must = np.zeros(n, dtype=np.float64)
+        sim_nice = np.zeros(n, dtype=np.float64)
+        sim_disq = np.zeros(n, dtype=np.float64)
+
+        shortlist = i_must[0]
+        sim_must[shortlist] = d_must[0]
+        short_rows = embeddings[shortlist]
+        sim_nice[shortlist] = short_rows @ jd_vectors[1]
+        sim_disq[shortlist] = short_rows @ jd_vectors[2]
+        return sim_must, sim_nice, sim_disq
+
+    # Default: numpy matmul backend (exact)
     # jd_vectors[0] = must-have, [1] = nice-to-have, [2] = disqualifier
     sim_must = embeddings @ jd_vectors[0]   # (N,)
     sim_nice = embeddings @ jd_vectors[1]   # (N,)
@@ -240,8 +274,23 @@ def run_ranking_pipeline(
     # ===== Step 6: Generate reasoning strings =====
     log.info("Generating reasoning strings...")
 
-    # Build a stub JDProfile for Member D's explainer
-    jd_profile = JDProfile()
+    # Real JDProfile for Member D's explainer: prefer parsing the actual JD
+    # file; fall back to the canonical hand-decomposed competition JD.
+    try:
+        jd_profile: JDProfile = load_default_jd_profile()
+        try:
+            parsed = jd_parser_module.parse_job_description(jd_path)
+            if parsed.must_have_skills:
+                jd_profile = parsed
+                log.info("  JD parsed from file: %d must-have, %d nice-to-have, %d disqualifiers",
+                         len(parsed.must_have_skills), len(parsed.nice_to_have_skills), len(parsed.disqualifiers))
+            else:
+                log.info("  JD file parsed but empty sections; using canonical JD profile")
+        except Exception as parse_error:
+            log.info("  JD file parse unavailable (%s); using canonical JD profile", parse_error)
+    except Exception as fallback_error:  # pragma: no cover - defensive
+        jd_profile = JDProfile()
+        log.warning("  JD profile unavailable (%s); explainer runs score-only", fallback_error)
 
     rows = []
     for rank, breakdown in enumerate(top_100, start=1):
